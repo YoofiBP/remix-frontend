@@ -1,6 +1,39 @@
 import Navbar from "~/components/Navbar";
+import {json, LoaderFunction, redirect} from "@remix-run/node";
+import userServices, { UnAuthenticatedError} from '../services/user.services';
+import {getAuthTokenFromRequest, getUserIdFromRequest} from "~/services/session.services";
+import {useLoaderData} from "@remix-run/react";
+import dayjs from 'dayjs';
+
+export const loader: LoaderFunction = async ({request}) => {
+    const token = await getAuthTokenFromRequest(request);
+    const userID = await getUserIdFromRequest(request);
+    if(!token || !userID){
+        return redirect('signin');
+    }
+    try {
+        const user = await userServices.getUser(userID,{token});
+        return json(user);
+    } catch (err) {
+        if(err instanceof UnAuthenticatedError){
+            return redirect('signin')
+        }
+        return json({
+            error: 'Something went wrong'
+        }, {
+            status: 500
+        })
+    }
+}
+
+type UserData = {
+    name: string;
+    email:string;
+    createdAt: string
+}
 
 export default function Profile(){
+    const user = useLoaderData<UserData>();
     return (
         <div className={'container-fluid'}>
             <Navbar/>
@@ -14,11 +47,11 @@ export default function Profile(){
                         </div>
                         <div className={'col-8'}>
                             <div className={'row'}>
-                                Jane Smith
+                                {user.name}
                             </div>
                             <div className={'row'}>
                                 <small>
-                                    jane@smith.com
+                                    {user.email}
                                 </small>
                             </div>
 
@@ -33,7 +66,7 @@ export default function Profile(){
                         </div>
                     </div>
                         <hr />
-                        <h6>Joined Today</h6>
+                        <h6>Joined {dayjs(user.createdAt).format('ddd MMM D YYYY')}</h6>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,8 @@
 import Navbar from "~/components/Navbar";
 import {Form} from "@remix-run/react";
 import authService from '../services/auth.services';
-import {ActionFunction, json, redirect} from "@remix-run/node";
+import {ActionFunction, json } from "@remix-run/node";
+import {createUserSession} from "~/services/session.services";
 
 export const action: ActionFunction = async ({request})  => {
     const formData = await request.formData();
@@ -17,27 +18,27 @@ export const action: ActionFunction = async ({request})  => {
             })
     }
 
-    const response = await authService.signIn({
-        email,
-        password
-    })
+    try {
+        const {token, userInDb} = await authService.signIn({
+            email,
+            password
+        })
 
-    const cookies = response?.headers.get('set-cookie');
-
-    if(cookies){
-        return redirect('profile', {
-            headers: {
-                'Set-Cookie': cookies
-            }
-        });
-    }else {
+        return createUserSession(userInDb, token, 'profile');
+    } catch (e) {
+        if((e as {status: number}).status === 401){
+            return json({
+                error: 'Invalid credentials'
+            }, {
+                status: 401
+            })
+        }
         return json({
             error: 'Login failed'
         }, {
             status: 500
         })
     }
-
 
 }
 
