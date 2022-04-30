@@ -12,7 +12,8 @@ export const loader: LoaderFunction = async ({request}) => {
         return redirect('signin');
     }
     try {
-        const user = await userServices.getUser(userID,{token});
+        const abortController = new AbortController();
+        const user = await userServices.getUser({userID},{token}, abortController.signal);
         return json(user);
     } catch (err) {
         if(err instanceof UnAuthenticatedError){
@@ -36,7 +37,6 @@ export default function Profile(){
     const user = useLoaderData<UserData>();
     return (
         <div className={'container-fluid'}>
-            <Navbar/>
             <div className={'row justify-content-center pt-5'}>
                 <div className={'col-6 card'}>
                     <div className={'p-3'}>

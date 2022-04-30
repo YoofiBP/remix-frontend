@@ -1,12 +1,15 @@
-import type {LinksFunction, MetaFunction} from "@remix-run/node";
+import type {LinksFunction, LoaderFunction, MetaFunction} from "@remix-run/node";
 import {
   Links,
   LiveReload,
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
+  ScrollRestoration, useLoaderData,
 } from "@remix-run/react";
+import Navbar from "~/components/Navbar";
+import {getAuthTokenFromRequest} from "~/services/session.services";
+import {json} from "@remix-run/node";
 
 
 export const links: LinksFunction = () => {
@@ -30,7 +33,22 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
+export const loader: LoaderFunction = async ({request}) => {
+  const userID = await getAuthTokenFromRequest(request);
+
+  if(typeof userID === 'string'){
+    return json({
+      isAuthenticated: true
+    })
+  } else {
+    return json({
+    isAuthenticated: false
+  })}
+}
+
 export default function App() {
+  const {isAuthenticated} = useLoaderData();
+
   return (
     <html lang="en">
       <head>
@@ -38,6 +56,7 @@ export default function App() {
         <Links />
       </head>
       <body>
+      <Navbar isAuthenticated={isAuthenticated}/>
         <Outlet />
         <ScrollRestoration />
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"

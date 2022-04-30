@@ -1,4 +1,6 @@
-import {generateFullBackendUrl, UnAuthenticatedError} from "~/services/user.services";
+import {generateFullBackendUrl, processErrorResponse} from "~/services/user.services";
+import {destroySession, getSessionFromRequest} from "~/services/session.services";
+import {redirect} from "@remix-run/node";
 
 type LoginCreds = {
     email: string;
@@ -16,14 +18,21 @@ const signIn = async (credentials: LoginCreds) => {
             credentials: 'include'
         });
 
-        if(!response.ok){
-            if(response.status === 401) throw new UnAuthenticatedError()
-            throw {
-                status: response.status,
-                body: await response.json()
-            }
-        }
+        await processErrorResponse(response);
         return await response.json();
 }
 
-export default  { signIn }
+const signOut = async (request:Request) => {
+    const session = await getSessionFromRequest(request);
+
+    const response = await fetch(generateFullBackendUrl('/auth/signout'));
+    await processErrorResponse(response);
+
+    return redirect('signin', {
+        headers: {
+            'Set-Cookie': await destroySession(session)
+        }
+    })
+}
+
+export default  { signIn, signOut }

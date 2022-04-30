@@ -11,16 +11,35 @@ type Auth = {
     token: string;
 }
 
-type NewUser = {
+export type User = {
+    _id: string;
     name: string;
     email: string;
     password: string;
 }
 
-export class UnAuthenticatedError extends Error {
+type UserParams = {
+    userID: string;
 }
 
-const create = async (user: NewUser) => {
+export class UnAuthenticatedError extends Error {
+
+}
+
+export const processErrorResponse = async (response: Response) => {
+    if (!response.ok) {
+        if (response.status === 401) {
+            throw new UnAuthenticatedError()
+        } else {
+            throw {
+                status: response.status,
+                body: await response.json()
+            }
+        }
+    }
+}
+
+const create = async (user: User) => {
     try {
         const response = await fetch(generateFullBackendUrl('api/users'), {
             method: 'POST',
@@ -30,58 +49,70 @@ const create = async (user: NewUser) => {
                 'Content-Type': 'application/json'
             }
         })
-        return response;
-    } catch (e) {
-        console.error(e)
 
-    }
-}
-
-const list = async () => {
-    try {
-        const response = await fetch(generateFullBackendUrl('api/users'), {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
+        if (!response.ok) {
+            await processErrorResponse(response);
+        }
         return await response.json();
     } catch (e) {
         console.error(e)
+
     }
 }
 
-const getUser = async (userID: string, auth: Auth) => {
+const list = async (signal: AbortSignal, auth: Auth) => {
+    const response = await fetch(generateFullBackendUrl('api/users'), {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+        },
+        signal
+    })
+    await processErrorResponse(response);
+    return await response.json();
+}
 
-    const response = await fetch(generateFullBackendUrl('api/users/' + userID), {
+const getUser = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
+    const response = await fetch(generateFullBackendUrl('api/users/' + params.userID), {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
         },
     })
-    if (!response.ok) {
-        if (response.status === 401) throw new UnAuthenticatedError();
-        throw {
-            status: response.status
-        }
-    }
+    await processErrorResponse(response)
     return await response.json();
-
 }
 
-const getCurrentProfile = async (auth: Auth) => {
-    const response = await fetch(generateFullBackendUrl('api/users/me'), {
-        method: 'GET',
+const update = async (params: UserParams, auth: Auth, signal: AbortSignal, user: User) => {
+    const response = await fetch(generateFullBackendUrl('api/users/' + params.userID), {
+        method: 'PUT',
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
         },
-        credentials: 'include'
+        body: JSON.stringify(user)
     })
-    if (response.status === 401) throw new UnAuthenticatedError()
+
+    await processErrorResponse(response);
     return await response.json();
 }
 
-export default {create, list, getUser, getCurrentProfile};
+const remove = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
+    const response = await fetch(generateFullBackendUrl('api/users/' + params.userID), {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+        },
+        method: 'DELETE'
+    })
+
+    await processErrorResponse(response);
+    return await response.json();
+}
+
+
+export default {create, list, getUser, update, remove};

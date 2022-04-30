@@ -1,4 +1,3 @@
-import Navbar from "~/components/Navbar";
 import {Form} from "@remix-run/react";
 import authService from '../services/auth.services';
 import {ActionFunction, json } from "@remix-run/node";
@@ -45,7 +44,6 @@ export const action: ActionFunction = async ({request})  => {
 export default function SignIn(){
     return (
         <div className={'container-fluid'}>
-            <Navbar/>
             <div className={'row justify-content-center pt-4'}>
                 <Form className={'col-6 card p-5'} method={'post'}>
                     <h3 className={'pb-1 text-center'}>Sign In</h3>

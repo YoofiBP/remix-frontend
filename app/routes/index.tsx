@@ -1,9 +1,6 @@
-import Navbar from "~/components/Navbar";
-
 export default function Index() {
   return (
    <div className="container-fluid">
-       <Navbar />
        <div className={'row justify-content-center pt-4'}>
            <div className={'col-7'}>
            <div className={'card p-3'}>
