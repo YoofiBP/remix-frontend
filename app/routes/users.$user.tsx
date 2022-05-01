@@ -2,6 +2,7 @@ import {useCatch, useLoaderData} from "@remix-run/react";
 import {json, LoaderFunction} from "@remix-run/node";
 import {getAuthTokenFromRequest} from "~/services/session.services";
 import userService, {User} from "~/services/user.services";
+import AlertMessage from "~/components/alert";
 
 export const loader: LoaderFunction = async ({request, params}) => {
     try {
@@ -44,16 +45,8 @@ export function CatchBoundary(){
     const caught = useCatch();
 
     if(caught.status === 400){
-        return <div className={'container'}>
-            <div className="alert alert-danger mt-3" role="alert">
-                Unknown user!
-            </div>
-        </div>
+        return <AlertMessage message={'Unknown user!'} type={'danger'}/>
     }else {
-        return <div className={'container'}>
-            <div className="alert alert-warning mt-3" role="alert">
-                Whoops! There was a problem loading users list
-            </div>
-        </div>
+        return <AlertMessage message={'Whoops! There was a problem loading users list'} type={'warning'}/>
     }
 }

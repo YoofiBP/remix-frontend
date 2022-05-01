@@ -26,11 +26,22 @@ export class UnAuthenticatedError extends Error {
 
 }
 
+export class ValidationError  {
+    body:any
+
+    constructor(body: any) {
+        this.body = body;
+    }
+}
+
 export const processErrorResponse = async (response: Response) => {
     if (!response.ok) {
         if (response.status === 401) {
-            throw new UnAuthenticatedError()
-        } else {
+            throw new UnAuthenticatedError();
+        } else if (response.status  === 422) {
+            throw new ValidationError(await response.json());
+        }
+        else {
             throw {
                 status: response.status,
                 body: await response.json()
@@ -39,25 +50,18 @@ export const processErrorResponse = async (response: Response) => {
     }
 }
 
-const create = async (user: User) => {
-    try {
-        const response = await fetch(generateFullBackendUrl('api/users'), {
-            method: 'POST',
-            body: JSON.stringify(user),
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-
-        if (!response.ok) {
-            await processErrorResponse(response);
+const create = async (user: Omit<User, '_id'>) => {
+    const response = await fetch(generateFullBackendUrl('api/users'), {
+        method: 'POST',
+        body: JSON.stringify(user),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         }
-        return await response.json();
-    } catch (e) {
-        console.error(e)
+    })
 
-    }
+    await processErrorResponse(response);
+    return await response.json();
 }
 
 const list = async (signal: AbortSignal, auth: Auth) => {
@@ -80,6 +84,7 @@ const getUser = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
         },
+        signal
     })
     await processErrorResponse(response)
     return await response.json();
@@ -107,7 +112,8 @@ const remove = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
         },
-        method: 'DELETE'
+        method: 'DELETE',
+        signal
     })
 
     await processErrorResponse(response);
