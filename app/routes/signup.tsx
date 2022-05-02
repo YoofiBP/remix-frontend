@@ -1,8 +1,18 @@
 import {Form, Link, useActionData} from "@remix-run/react";
-import type {ActionFunction} from "@remix-run/node";
-import {json} from "@remix-run/node";
+import type {ActionFunction, LoaderFunction} from "@remix-run/node";
+import {json, redirect} from "@remix-run/node";
 import userServices, {ValidationError} from '../services/user.services';
 import AlertMessage from "~/components/alert";
+import {getAuthTokenFromRequest} from "~/services/session.services";
+
+export const loader: LoaderFunction = async ({request}) => {
+    const token = await getAuthTokenFromRequest(request);
+    if(typeof token === 'string') {
+        return redirect('/profile')
+    } else {
+        return json({})
+    }
+}
 
 export const action: ActionFunction = async ({request}) => {
     try {
@@ -72,7 +82,7 @@ export default function SignUp() {
                 </div>
                 <div className={'form-group row'}>
                     <label className={'col-2'} htmlFor={'password'}>Password: </label>
-                    <input className={'col-10 form-control'} type={'password'} placeholder={'Enter email'} id={'password'} name={'password'} />
+                    <input className={'col-10 form-control'} type={'password'} placeholder={'Enter password'} id={'password'} name={'password'} />
                 </div>
                 <div className={'row justify-content-center'}>
                 <button type={'submit'} className={'btn btn-primary col-10'}>Submit</button>

@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import Navbar from "~/components/Navbar";
 import {getAuthTokenFromRequest} from "~/services/session.services";
-import {json} from "@remix-run/node";
+import {json, redirect} from "@remix-run/node";
 
 
 export const links: LinksFunction = () => {
@@ -29,21 +29,26 @@ export const links: LinksFunction = () => {
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  title: "New Remix App",
   viewport: "width=device-width,initial-scale=1",
 });
 
 export const loader: LoaderFunction = async ({request}) => {
   const userID = await getAuthTokenFromRequest(request);
 
+  const unProtectedRoutes = ['/signin', '/signup']
+
   if(typeof userID === 'string'){
     return json({
       isAuthenticated: true
     })
   } else {
+    if(!unProtectedRoutes.includes(new URL(request.url).pathname)){
+      return redirect('/signin');
+    }
     return json({
-    isAuthenticated: false
-  })}
+    isAuthenticated: false}
+    )
+  }
 }
 
 export default function App() {
@@ -54,6 +59,7 @@ export default function App() {
       <head>
         <Meta />
         <Links />
+        <title>Welcome to Yoofi Remix</title>
       </head>
       <body>
       <Navbar isAuthenticated={isAuthenticated}/>

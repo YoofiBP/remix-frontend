@@ -4,7 +4,7 @@ type Props = {
     isAuthenticated: boolean;
 }
 
-export default function Navbar({isAuthenticated}: Props){
+export default function Navbar({isAuthenticated = false}: Props){
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
             <Link className="navbar-brand" to="/">MERN SKELETON</Link>

@@ -90,7 +90,7 @@ const getUser = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
     return await response.json();
 }
 
-const update = async (params: UserParams, auth: Auth, signal: AbortSignal, user: User) => {
+const update = async (params: UserParams, auth: Auth, user: Partial<User>) => {
     const response = await fetch(generateFullBackendUrl('api/users/' + params.userID), {
         method: 'PUT',
         headers: {
@@ -105,7 +105,7 @@ const update = async (params: UserParams, auth: Auth, signal: AbortSignal, user:
     return await response.json();
 }
 
-const remove = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
+const remove = async (params: UserParams, auth: Auth) => {
     const response = await fetch(generateFullBackendUrl('api/users/' + params.userID), {
         headers: {
             'Accept': 'application/json',
@@ -113,7 +113,6 @@ const remove = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
             'Authorization': `Bearer ${auth.token}`
         },
         method: 'DELETE',
-        signal
     })
 
     await processErrorResponse(response);

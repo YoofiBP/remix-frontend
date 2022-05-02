@@ -1,16 +1,15 @@
-import Navbar from "~/components/Navbar";
-import {json, LoaderFunction, redirect} from "@remix-run/node";
+import type {ActionFunction, LoaderFunction} from "@remix-run/node";
+import { json, redirect} from "@remix-run/node";
 import userServices, { UnAuthenticatedError} from '../services/user.services';
 import {getAuthTokenFromRequest, getUserIdFromRequest} from "~/services/session.services";
-import {useLoaderData} from "@remix-run/react";
+import {Link, useLoaderData, Form} from "@remix-run/react";
 import dayjs from 'dayjs';
+import authService from "~/services/auth.services";
 
 export const loader: LoaderFunction = async ({request}) => {
     const token = await getAuthTokenFromRequest(request);
     const userID = await getUserIdFromRequest(request);
-    if(!token || !userID){
-        return redirect('signin');
-    }
+
     try {
         const abortController = new AbortController();
         const user = await userServices.getUser({userID},{token}, abortController.signal);
@@ -27,7 +26,25 @@ export const loader: LoaderFunction = async ({request}) => {
     }
 }
 
-type UserData = {
+export const action: ActionFunction = async ({request}) => {
+    try {
+        const userID = await getUserIdFromRequest(request);
+        const token = await getAuthTokenFromRequest(request);
+
+        await userServices.remove({userID}, {token});
+
+        return await authService.signOut(request);
+    } catch (e) {
+        if(e instanceof UnAuthenticatedError){
+            return redirect('/signin');
+        }
+        return new Response('Something went wrong', {
+            status: 500
+        })
+    }
+}
+
+export type UserData = {
     name: string;
     email:string;
     createdAt: string
@@ -57,12 +74,15 @@ export default function Profile(){
 
                         </div>
                         <div className={'col-2'}>
-                            <button className={'btn btn-light mr-2'}>
+                           <Link to={'/profile/edit'}> <button className={'btn btn-light mr-2'}>
                             <i className="bi bi-pencil-fill"/>
                             </button>
+                           </Link>
+                            <Form method={'post'} >
                             <button className={'btn btn-light'}>
                                 <i className="bi bi-trash"/>
                             </button>
+                            </Form>
                         </div>
                     </div>
                         <hr />

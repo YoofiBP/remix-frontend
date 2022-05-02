@@ -1,9 +1,20 @@
 import {Form} from "@remix-run/react";
 import authService from '../services/auth.services';
-import {ActionFunction, json } from "@remix-run/node";
-import {createUserSession} from "~/services/session.services";
+import type {ActionFunction, LoaderFunction} from "@remix-run/node";
+import { json, redirect} from "@remix-run/node";
+import {createUserSession, getAuthTokenFromRequest} from "~/services/session.services";
+
+export const loader: LoaderFunction = async ({request}) => {
+    const token = await getAuthTokenFromRequest(request);
+    if(typeof token === 'string') {
+        return redirect('/profile')
+    } else {
+        return json({})
+    }
+}
 
 export const action: ActionFunction = async ({request})  => {
+
     const formData = await request.formData();
     const email = formData.get('email');
     const password = formData.get('password');

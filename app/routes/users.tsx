@@ -1,6 +1,8 @@
-import {UnAuthenticatedError, User} from "~/services/user.services";
-import {Link, useCatch, useLoaderData} from "@remix-run/react";
-import {json, LoaderFunction, redirect} from "@remix-run/node";
+import type { User} from "~/services/user.services";
+import {UnAuthenticatedError} from "~/services/user.services";
+import {Link, useLoaderData} from "@remix-run/react";
+import type { LoaderFunction} from "@remix-run/node";
+import {json, redirect} from "@remix-run/node";
 import {commitSession, getAuthTokenFromRequest, getSessionFromRequest} from "~/services/session.services";
 import userServices from "~/services/user.services";
 
@@ -29,7 +31,6 @@ export const loader: LoaderFunction = async ({request}) => {
             })
         }
     }
-
 }
 
 const ListItem = ({name, id}: {name: string, id: string}) => {
