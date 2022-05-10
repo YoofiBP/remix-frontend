@@ -34,7 +34,9 @@ export const action: ActionFunction = async ({request})  => {
             password
         })
 
-        return createUserSession(userInDb, token, 'profile');
+        const { _id} = userInDb;
+
+        return createUserSession(_id, token, 'profile');
     } catch (e) {
         if((e as {status: number}).status === 401){
             return json({

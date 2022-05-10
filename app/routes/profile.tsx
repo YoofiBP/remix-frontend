@@ -6,6 +6,11 @@ import {Link, useLoaderData, Form} from "@remix-run/react";
 import dayjs from 'dayjs';
 import authService from "~/services/auth.services";
 
+export const convertBufferToImageSrc = (buffer: Buffer, mimetype: string) => {
+    const b64image = Buffer.from(buffer).toString('base64');
+    return `data:${mimetype};base64,${b64image}`
+}
+
 export const loader: LoaderFunction = async ({request}) => {
     const token = await getAuthTokenFromRequest(request);
     const userID = await getUserIdFromRequest(request);
@@ -13,8 +18,10 @@ export const loader: LoaderFunction = async ({request}) => {
     try {
         const abortController = new AbortController();
         const user = await userServices.getUser({userID},{token}, abortController.signal);
-        return json(user);
+        user.image = convertBufferToImageSrc(user.image.data, user.image.contentType);
+        return json(user)
     } catch (err) {
+        console.error(err)
         if(err instanceof UnAuthenticatedError){
             return redirect('signin')
         }
@@ -45,6 +52,8 @@ export const action: ActionFunction = async ({request}) => {
 }
 
 export type UserData = {
+    image: any;
+    about: string;
     name: string;
     email:string;
     createdAt: string
@@ -60,7 +69,7 @@ export default function Profile(){
                     <div className={'row'}><h4>Profile</h4></div>
                     <div className={'row'}>
                         <div className={'col-2'}>
-                            <i className="bi bi-person-circle"/>
+                           <img src={user.image} alt={'owners profile'} height={100} width={100} />
                         </div>
                         <div className={'col-8'}>
                             <div className={'row'}>
@@ -71,6 +80,9 @@ export default function Profile(){
                                     {user.email}
                                 </small>
                             </div>
+                            <div className={'row'}>
+                                {user.about}
+                            </div>
 
                         </div>
                         <div className={'col-2'}>
@@ -78,7 +90,7 @@ export default function Profile(){
                             <i className="bi bi-pencil-fill"/>
                             </button>
                            </Link>
-                            <Form method={'post'} >
+                            <Form method={'post'} style={{display: 'inline-block'}}>
                             <button className={'btn btn-light'}>
                                 <i className="bi bi-trash"/>
                             </button>

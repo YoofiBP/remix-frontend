@@ -17,6 +17,9 @@ export default function Navbar({isAuthenticated = false}: Props){
                         <li className="nav-item">
                             <Link className={"nav-link"} to={"/logout"}>Logout</Link>
                         </li>
+                        <li className="nav-item">
+                            <Link className={"nav-link"} to={"/profile"}>Profile</Link>
+                        </li>
                     </>}
                     {!isAuthenticated && <><li className="nav-item">
                         <Link className="nav-link" to="/signup">Sign Up</Link>

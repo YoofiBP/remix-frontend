@@ -90,17 +90,15 @@ const getUser = async (params: UserParams, auth: Auth, signal: AbortSignal) => {
     return await response.json();
 }
 
-const update = async (params: UserParams, auth: Auth, user: Partial<User>) => {
+const update = async (params: UserParams, auth: Auth, user: FormData) => {
     const response = await fetch(generateFullBackendUrl('api/users/' + params.userID), {
         method: 'PUT',
         headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${auth.token}`
         },
-        body: JSON.stringify(user)
+        body: user
     })
-
     await processErrorResponse(response);
     return await response.json();
 }

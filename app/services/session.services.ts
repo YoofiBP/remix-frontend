@@ -22,7 +22,7 @@ export const getUserIdFromRequest = async (request: Request) => {
     if(!userID){
         return null;
     }
-    return userID._id;
+    return userID;
 }
 
 export const getAuthTokenFromRequest = async (request: Request) => {
@@ -34,7 +34,7 @@ export const getAuthTokenFromRequest = async (request: Request) => {
     return token;
 }
 
-export const createUserSession = async (userID: string, token: string, redirectUrl: string) => {
+export const createUserSession = async (userID: string, token: string) => {
     const session = await getSession();
     session.set('token', token);
     session.set('userID', userID);
