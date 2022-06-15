@@ -60,7 +60,7 @@ export default function Users(){
             <div className={'card col-8 mt-4'}>
                 <h3 className={'mt-3'}>All Users</h3>
                 <div className={'mb-3'}>
-                {users.map(user => <ListItem id={user._id} name={user.name} key={user.email}/>)}
+                {users.map(user => <ListItem id={user.id} name={user.name} key={user.email}/>)}
                 </div>
             </div>
             </div>

@@ -6,7 +6,7 @@ import {Link, useLoaderData, Form} from "@remix-run/react";
 import dayjs from 'dayjs';
 import authService from "~/services/auth.services";
 
-export const convertBufferToImageSrc = (buffer: Buffer, mimetype: string) => {
+export const convertBufferToImageSrc = (buffer: Buffer | ArrayBuffer, mimetype: string) => {
     const b64image = Buffer.from(buffer).toString('base64');
     return `data:${mimetype};base64,${b64image}`
 }
@@ -18,7 +18,10 @@ export const loader: LoaderFunction = async ({request}) => {
     try {
         const abortController = new AbortController();
         const user = await userServices.getUser({userID},{token}, abortController.signal);
-        user.image = convertBufferToImageSrc(user.image.data, user.image.contentType);
+        const userImage = await userServices.getUserPhoto({userID}, {token})
+        if(userImage){
+            user.image = convertBufferToImageSrc(userImage.data, userImage.type);
+        }
         return json(user)
     } catch (err) {
         console.error(err)

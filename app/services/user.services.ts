@@ -1,4 +1,6 @@
 import config from '../config/config';
+import type {z} from 'zod';
+import type { FollowPayload} from "~/services/schemas/user.schema";
 
 export const generateFullBackendUrl = (route: string) => {
     if (route[0] === '/') {
@@ -12,7 +14,7 @@ type Auth = {
 }
 
 export type User = {
-    _id: string;
+    id: string;
     name: string;
     email: string;
     password: string;
@@ -59,6 +61,7 @@ const create = async (user: Omit<User, '_id'>) => {
             'Content-Type': 'application/json'
         }
     })
+
 
     await processErrorResponse(response);
     return await response.json();
@@ -117,5 +120,37 @@ const remove = async (params: UserParams, auth: Auth) => {
     return await response.json();
 }
 
+const getUserPhoto = async (params: UserParams, auth: Auth) => {
+    const response = await fetch(generateFullBackendUrl(`api/users/photo/${params.userID}`), {
+        headers: {
+            'Authorization': `Bearer ${auth.token}`
+        }
+    })
 
-export default {create, list, getUser, update, remove};
+    const imageData = await response.blob()
+    await processErrorResponse(response);
+    return {
+        data: await imageData.arrayBuffer(),
+        type: imageData.type
+    }
+
+}
+
+const follow = async (params: z.infer<typeof FollowPayload>, auth: Auth) => {
+    const response = await fetch(generateFullBackendUrl(`api/users/follow/`), {
+        method: 'PUT',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+        },
+        body: JSON.stringify(params)
+    })
+    if(!response.ok){
+        throw Error('Following failed')
+    }
+    return true
+}
+
+
+export default {create, list, getUser, update, remove, getUserPhoto, follow};

@@ -21,7 +21,10 @@ export const loader: LoaderFunction = async ({request}) => {
     try {
         const abortController = new AbortController();
         const user = await userServices.getUser({userID},{token}, abortController.signal);
-        user.image = convertBufferToImageSrc(user.image.data, user.image.contentType);
+        if(user.image){
+            user.image = convertBufferToImageSrc(user.image.data, user.image.contentType);
+        }
+
         return json(user);
     } catch (err) {
         if(err instanceof UnAuthenticatedError){

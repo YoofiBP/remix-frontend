@@ -1,6 +1,6 @@
 import {useCatch, useLoaderData} from "@remix-run/react";
-import {json, LoaderFunction} from "@remix-run/node";
-import {getAuthTokenFromRequest} from "~/services/session.services";
+import {ActionFunction, json, LoaderFunction, redirect} from "@remix-run/node";
+import {getAuthTokenFromRequest, getUserIdFromRequest} from "~/services/session.services";
 import userService, {User} from "~/services/user.services";
 import AlertMessage from "~/components/alert";
 
@@ -30,6 +30,39 @@ export const loader: LoaderFunction = async ({request, params}) => {
 
 }
 
+export const action: ActionFunction = async ({request, params}) => {
+    const userID = await getUserIdFromRequest(request);
+    const token = await getAuthTokenFromRequest(request);
+    const followingID = params.user;
+
+    if(typeof followingID !== 'string'){
+        return json({
+          error: 'Invalid user'
+        }, {
+            status: 500
+        })
+    }
+
+    try {
+        await userService.follow({
+            followerID: userID,
+            followingID
+        }, {
+            token
+        })
+        return redirect('/users')
+    } catch (e) {
+        console.log(e)
+        return json({
+            error: 'Something went wrong'
+        }, {
+            status: 500
+        })
+    }
+
+
+}
+
 export default function UserDetail(){
     const {user} = useLoaderData<{user: User}>();
 
@@ -37,6 +70,9 @@ export default function UserDetail(){
         <div className={'card mt-3 col-10'}>
             <p>{user.name}</p>
             <p>{user.email}</p>
+            <form method="post">
+                <button type="submit" className="btn btn-warning mb-3">Follow</button>
+            </form>
         </div>
     </div>)
 }
